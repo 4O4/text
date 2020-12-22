@@ -33,7 +33,7 @@
 				{{ t('text', 'File could not be loaded. Please check your internet connection.') }} <a class="button primary" @click="reconnect">{{ t('text', 'Reconnect') }}</a>
 			</p>
 		</div>
-		<div v-if="currentSession && active" id="editor-wrapper" :class="{'has-conflicts': hasSyncCollission, 'icon-loading': !initialLoading && !hasConnectionIssue, 'richEditor': isRichEditor}">
+		<div v-if="currentSession && active" id="editor-wrapper" :class="{'has-conflicts': hasSyncCollission, 'icon-loading': !initialLoading && !hasConnectionIssue, 'richEditor': isRichEditor, 'show-color-annotations': showAuthorAnnotations}">
 			<div id="editor">
 				<MenuBar v-if="!syncError && !readOnly"
 					ref="menubar"
@@ -74,6 +74,7 @@
 import Vue from 'vue'
 import escapeHtml from 'escape-html'
 import moment from '@nextcloud/moment'
+import { mapState } from 'vuex'
 
 import { SyncService, ERROR_TYPE, IDLE_TIMEOUT } from './../services/SyncService'
 import { endpointUrl, getRandomGuestName } from './../helpers'
@@ -172,6 +173,9 @@ export default {
 		}
 	},
 	computed: {
+		...mapState({
+			showAuthorAnnotations: state => state.showAuthorAnnotations,
+		}),
 		lastSavedStatus() {
 			let status = (this.dirtyStateIndicator ? '*' : '')
 			if (!this.isMobile) {
@@ -349,7 +353,7 @@ export default {
 									clientID: this.currentSession.id,
 									color: (clientID) => {
 										const session = this.sessions.find(item => '' + item.id === '' + clientID)
-										return session ? session.color : '#aaa'
+										return session ? session.color : 'var(--color-background-hover)'
 									},
 									name: (clientID) => {
 										const session = this.sessions.find(item => '' + item.id === '' + clientID)
@@ -533,6 +537,12 @@ export default {
 		height: 100%;
 		overflow: hidden;
 		position: absolute;
+
+		&:not(.show-color-annotations)::v-deep .author-annotation {
+			background-color: transparent !important;
+			color: var(--color-main-text) !important;
+		}
+
 		.ProseMirror {
 			margin-top: 0 !important;
 		}

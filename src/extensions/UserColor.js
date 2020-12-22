@@ -23,6 +23,16 @@
 import { Extension, Plugin } from 'tiptap'
 import { Decoration, DecorationSet } from 'prosemirror-view'
 
+const contrastRatio = (value) => {
+	const hexCode = value.charAt(0) === '#'
+		? value.substr(1, 6)
+		: value
+
+	const hexR = parseInt(hexCode.substr(0, 2), 16)
+	const hexG = parseInt(hexCode.substr(2, 2), 16)
+	const hexB = parseInt(hexCode.substr(4, 2), 16)
+	return (hexR + hexG + hexB) / (255 * 3)
+}
 function updateBlameMap(map, transform, id) {
 	const result = []; const mapping = transform.mapping
 	for (let i = 0; i < map.length; i++) {
@@ -159,6 +169,7 @@ class UserColor extends Extension {
 			},
 		}
 	}
+
 	get plugins() {
 		return [
 			new Plugin({
@@ -190,7 +201,11 @@ class UserColor extends Extension {
 							.filter(span => typeof tState.commits[span.commit] !== 'undefined')
 							.map(span => {
 								const commit = tState.commits[span.commit]
-								return Decoration.inline(span.from, span.to, { style: 'background-color: ' + commit.author.color, title: commit.author.name })
+								return Decoration.inline(span.from, span.to, {
+									class: 'author-annotation',
+									style: 'background-color: ' + commit.author.color + '; color:' + (contrastRatio(commit.author.color) > 0.4 ? '#fff' : '#000'),
+									title: commit.author.name,
+								})
 							})
 						return { tracked, deco: DecorationSet.create(state.doc, decos) }
 					},
